@@ -231,7 +231,11 @@ def train(args, train_dataset, model, tokenizer):
                         {"langs": (torch.ones(batch[0].shape, dtype=torch.int64) * args.lang_id).to(args.device)}
                     )
 
-            outputs = model(**inputs)
+            print("Model's state_dict when training:----------------------------")
+            for param_tensor in model.state_dict():
+                print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+                        outputs = model(**inputs)
+            print("-------------------------------------------------------------")
             # model outputs are always tuple in transformers (see doc)
             loss = outputs[0]
 
