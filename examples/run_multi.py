@@ -66,10 +66,10 @@ from transformers.data.metrics.squad_metrics import (
 )
 from transformers.data.processors.squad import SquadResult, SquadV1Processor, SquadV2Processor
 
-from transformers import glue_compute_metrics as compute_metrics
-from transformers import glue_convert_examples_to_features as convert_examples_to_features
-from transformers import glue_output_modes as output_modes
-from transformers import glue_processors as processors
+#from transformers import glue_compute_metrics as compute_metrics
+#from transformers import glue_convert_examples_to_features as convert_examples_to_features
+#from transformers import glue_output_modes as output_modes
+#from transformers import glue_processors as processors
 
 from run_squad import squad_load_and_cache_examples
 from run_glue import glue_load_and_cache_examples
