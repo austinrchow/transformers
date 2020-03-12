@@ -22,10 +22,12 @@ import logging
 import os
 import random
 import timeit
+import json
+
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
@@ -33,7 +35,7 @@ from transformers import (
     WEIGHTS_NAME,
     AdamW,
     AlbertConfig,
-    AlbertForQuestionAnswering,
+    AlbertForMultiTask,
     AlbertTokenizer,
     AlbertForMultiTask,
     BertConfig,
@@ -64,6 +66,13 @@ from transformers.data.metrics.squad_metrics import (
 )
 from transformers.data.processors.squad import SquadResult, SquadV1Processor, SquadV2Processor
 
+from transformers import glue_compute_metrics as compute_metrics
+from transformers import glue_convert_examples_to_features as convert_examples_to_features
+from transformers import glue_output_modes as output_modes
+from transformers import glue_processors as processors
+
+from run_squad import squad_load_and_cache_examples
+from run_glue import glue_load_and_cache_examples
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -88,7 +97,7 @@ MODEL_CLASSES = {
     "xlnet": (XLNetConfig, XLNetForQuestionAnswering, XLNetTokenizer),
     "xlm": (XLMConfig, XLMForQuestionAnswering, XLMTokenizer),
     "distilbert": (DistilBertConfig, DistilBertForQuestionAnswering, DistilBertTokenizer),
-    "albert": (AlbertConfig, AlbertForQuestionAnswering, AlbertTokenizer),
+    "albert": (AlbertConfig, AlbertForMultiTask, AlbertTokenizer),
 }
 
 
@@ -212,11 +221,10 @@ def train(args, train_dataset, model, tokenizer):
                 "end_positions": batch[4],
             }
 
-
             # print("Model's state_dict when training:----------------------------")
             # for param_tensor in model.state_dict():
-            #     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-            #             outputs = model(**inputs)
+                # print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+            outputs = model(**inputs)
             # print("-------------------------------------------------------------")
             # model outputs are always tuple in transformers (see doc)
             loss = outputs[0]

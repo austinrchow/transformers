@@ -22,10 +22,12 @@ import logging
 import os
 import random
 import timeit
+import json
+
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
@@ -33,8 +35,9 @@ from transformers import (
     WEIGHTS_NAME,
     AdamW,
     AlbertConfig,
-    AlbertForQuestionAnswering,
+    AlbertForMultiTask,
     AlbertTokenizer,
+    AlbertForMultiTask,
     BertConfig,
     BertForQuestionAnswering,
     BertTokenizer,
@@ -63,6 +66,13 @@ from transformers.data.metrics.squad_metrics import (
 )
 from transformers.data.processors.squad import SquadResult, SquadV1Processor, SquadV2Processor
 
+from transformers import glue_compute_metrics as compute_metrics
+from transformers import glue_convert_examples_to_features as convert_examples_to_features
+from transformers import glue_output_modes as output_modes
+from transformers import glue_processors as processors
+
+from run_squad import squad_load_and_cache_examples
+from run_glue import glue_load_and_cache_examples
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -87,7 +97,7 @@ MODEL_CLASSES = {
     "xlnet": (XLNetConfig, XLNetForQuestionAnswering, XLNetTokenizer),
     "xlm": (XLMConfig, XLMForQuestionAnswering, XLMTokenizer),
     "distilbert": (DistilBertConfig, DistilBertForQuestionAnswering, DistilBertTokenizer),
-    "albert": (AlbertConfig, AlbertForQuestionAnswering, AlbertTokenizer),
+    "albert": (AlbertConfig, AlbertForMultiTask, AlbertTokenizer),
 }
 
 
@@ -139,14 +149,6 @@ def train(args, train_dataset, model, tokenizer):
         # Load in optimizer and scheduler states
         optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "optimizer.pt")))
         scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "scheduler.pt")))
-
-    if args.fp16:
-        try:
-            from apex import amp
-        except ImportError:
-            raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
-
-        model, optimizer = amp.initialize(model, optimizer, opt_level=args.fp16_opt_level)
 
     # multi-gpu training (should be after apex fp16 initialization)
     if args.n_gpu > 1:
@@ -219,23 +221,11 @@ def train(args, train_dataset, model, tokenizer):
                 "end_positions": batch[4],
             }
 
-            if args.model_type in ["xlm", "roberta", "distilbert", "camembert"]:
-                del inputs["token_type_ids"]
-
-            if args.model_type in ["xlnet", "xlm"]:
-                inputs.update({"cls_index": batch[5], "p_mask": batch[6]})
-                if args.version_2_with_negative:
-                    inputs.update({"is_impossible": batch[7]})
-                if hasattr(model, "config") and hasattr(model.config, "lang2id"):
-                    inputs.update(
-                        {"langs": (torch.ones(batch[0].shape, dtype=torch.int64) * args.lang_id).to(args.device)}
-                    )
-
-            print("Model's state_dict when training:----------------------------")
-            for param_tensor in model.state_dict():
-                print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-                        outputs = model(**inputs)
-            print("-------------------------------------------------------------")
+            # print("Model's state_dict when training:----------------------------")
+            # for param_tensor in model.state_dict():
+                # print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+            outputs = model(**inputs)
+            # print("-------------------------------------------------------------")
             # model outputs are always tuple in transformers (see doc)
             loss = outputs[0]
 
@@ -777,11 +767,11 @@ def main():
         config=config,
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
-    print("Model's state_dict:-----------------------------------------------")
-    for param_tensor in model.state_dict():
-        print(param_tensor, "\t", model.state_dict()
-    [param_tensor].size())
-    print("-------------------------------------------------------------------")
+    # print("Model's state_dict:-----------------------------------------------")
+    # for param_tensor in model.state_dict():
+    #     print(param_tensor, "\t", model.state_dict()
+    # [param_tensor].size())
+    # print("-------------------------------------------------------------------")
     if args.local_rank == 0:
         # Make sure only the first process in distributed training will download model & vocab
         torch.distributed.barrier()
