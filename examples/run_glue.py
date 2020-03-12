@@ -411,15 +411,34 @@ def glue_load_and_cache_examples(args, task, tokenizer, evaluate=False):
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-    all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
+    all_attention_masks = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
     all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
     if output_mode == "classification":
         all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
     elif output_mode == "regression":
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
 
+    all_start_positions = torch.tensor([0 for f in features], dtype=torch.float)
+    all_end_positions = torch.tensor([0 for f in features], dtype=torch.long)
+    all_cls_index = torch.tensor([0 for f in features], dtype=torch.long)
+    all_p_mask = torch.tensor([0 for f in features], dtype=torch.float)
+    all_is_impossible = torch.tensor([0 for f in features], dtype=torch.float)
     dataset_type = torch.tensor([0 for f in features], dtype=torch.bool)
-    dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels, dataset_type)
+
+
+    dataset = TensorDataset(
+        all_input_ids,
+        all_attention_masks,
+        all_token_type_ids,
+        all_labels,
+        all_start_positions,
+        all_end_positions,
+        all_cls_index,
+        all_p_mask,
+        all_is_impossible,
+        dataset_type
+    )
+
     return dataset
 
 
