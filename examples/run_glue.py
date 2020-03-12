@@ -418,7 +418,8 @@ def glue_load_and_cache_examples(args, task, tokenizer, evaluate=False):
     elif output_mode == "regression":
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
 
-    dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
+    dataset_type = torch.tensor([0 for f in features], dtype=torch.bool)
+    dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels, dataset_type)
     return dataset
 
 
