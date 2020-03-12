@@ -724,8 +724,10 @@ def main():
     if args.do_train:
         squad_train_dataset = squad_load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False)
         glue_train_dataset = glue_load_and_cache_examples(args, 'qnli', tokenizer, evaluate=False)
-        print("squad dataset", squad_train_dataset)
-        print("glue dataset", glue_train_dataset)
+        combined_dataset = torch.cat([squad_train_dataset, glue_train_dataset], dim=0)
+        print("squad len", len(squad_train_dataset))
+        print("glue len", len(glue_train_dataset))
+        print("combined_dataset", len(combined_dataset))
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
