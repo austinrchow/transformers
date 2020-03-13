@@ -204,7 +204,7 @@ def train(args, train_dataset, model, tokenizer):
     for _ in train_iterator:
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
-
+            if step > 0: break
             # Skip past any already trained steps if resuming training
             if steps_trained_in_current_epoch > 0:
                 steps_trained_in_current_epoch -= 1
@@ -295,7 +295,7 @@ def train(args, train_dataset, model, tokenizer):
 
 
 def evaluate(args, model, tokenizer, prefix=""):
-    dataset, examples, features = load_and_cache_examples(args, tokenizer, evaluate=True, output_examples=True)
+    dataset, examples, features = squad_load_and_cache_examples(args, tokenizer, evaluate=True, output_examples=True)
 
     if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(args.output_dir)
@@ -327,6 +327,7 @@ def evaluate(args, model, tokenizer, prefix=""):
                 "input_ids": batch[0],
                 "attention_mask": batch[1],
                 "token_type_ids": batch[2],
+                "dataset_type":batch[6],
             }
 
             if args.model_type in ["xlm", "roberta", "distilbert", "camembert"]:
@@ -725,7 +726,12 @@ def main():
     if args.do_train:
         squad_train_dataset = squad_load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False)
         glue_train_dataset = glue_load_and_cache_examples(args, 'qnli', tokenizer, evaluate=False)
+#        print(len(squad_train_dataset))
+ #       squad_train_dataset = squad_train_dataset[:250]
+     #   print(len(squad_train_dataset))
+      #  glue_train_dataset = glue_train_dataset[:250]
         train_dataset = torch.utils.data.ConcatDataset([squad_train_dataset, glue_train_dataset])
+       # print(len(train_dataset))
         global_step, tr_loss = train(args,train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
