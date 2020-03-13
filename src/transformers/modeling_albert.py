@@ -1019,6 +1019,8 @@ class AlbertForMultiTask(AlbertPreTrainedModel):
         inputs_embeds=None,
         start_positions=None,
         end_positions=None,
+	all_labels=None,
+        dataset_type=None,
     ):
         r"""
         start_positions (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`, defaults to :obj:`None`):
@@ -1065,7 +1067,7 @@ class AlbertForMultiTask(AlbertPreTrainedModel):
         start_scores, end_scores = model(**input_dict)
 
         """
-
+        print(dataset_type)
         outputs = self.albert(
             input_ids=input_ids,
             attention_mask=attention_mask,

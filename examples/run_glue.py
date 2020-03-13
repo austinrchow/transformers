@@ -421,7 +421,7 @@ def glue_load_and_cache_examples(args, task, tokenizer, evaluate=False):
     all_start_positions = torch.tensor([0 for f in features], dtype=torch.long)
     all_end_positions = torch.tensor([0 for f in features], dtype=torch.long)
     all_cls_index = torch.tensor([0 for f in features], dtype=torch.long)
-    all_p_mask = torch.tensor([0 for f in features], dtype=torch.float)
+    all_p_mask = torch.tensor([[0 for _ in range(384)] for f in features], dtype=torch.float)
     all_is_impossible = torch.tensor([0 for f in features], dtype=torch.float)
     dataset_type = torch.tensor([0 for f in features], dtype=torch.bool)
 

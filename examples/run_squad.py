@@ -491,7 +491,7 @@ def squad_load_and_cache_examples(args, tokenizer, evaluate=False, output_exampl
     if args.local_rank == 0 and not evaluate:
         # Make sure only the first process in distributed training process the dataset, and the others will use the cache
         torch.distributed.barrier()
-
+    
     if output_examples:
         return dataset, examples, features
     return dataset

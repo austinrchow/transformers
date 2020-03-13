@@ -363,7 +363,7 @@ def squad_convert_examples_to_features(
                 all_is_impossible,
                 dataset_type
             )
-
+        print(len(dataset[0]))
         return features, dataset
     elif return_dataset == "tf":
         if not is_tf_available():

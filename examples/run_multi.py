@@ -211,14 +211,18 @@ def train(args, train_dataset, model, tokenizer):
                 continue
 
             model.train()
+            print(len(batch))
             batch = tuple(t.to(args.device) for t in batch)
-
+            print(len(batch))
+            print("wtf bro")
             inputs = {
                 "input_ids": batch[0],
                 "attention_mask": batch[1],
                 "token_type_ids": batch[2],
-                "start_positions": batch[3],
-                "end_positions": batch[4],
+		"all_labels":batch[3],
+                "start_positions": batch[4],
+                "end_positions": batch[5],
+		"dataset_type":batch[9]
             }
 
             # print("Model's state_dict when training:----------------------------")
@@ -725,7 +729,14 @@ def main():
         squad_train_dataset = squad_load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False)
         glue_train_dataset = glue_load_and_cache_examples(args, 'qnli', tokenizer, evaluate=False)
         train_dataset = torch.utils.data.ConcatDataset([squad_train_dataset, glue_train_dataset])
-        global_step, tr_loss = train(args, train_dataset, model, tokenizer)
+        for feature in squad_train_dataset[0]:
+            print(type(feature))
+            print(feature.shape)
+        for feature in glue_train_dataset[0]:
+            print(type(feature))
+            print(feature.shape)
+        print(len(squad_train_dataset[0]))
+        global_step, tr_loss = train(args,train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Save the trained model and the tokenizer
