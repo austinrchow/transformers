@@ -418,7 +418,7 @@ def glue_load_and_cache_examples(args, task, tokenizer, evaluate=False):
     elif output_mode == "regression":
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
 
-    all_start_positions = torch.tensor([0 for f in features], dtype=torch.float)
+    all_start_positions = torch.tensor([0 for f in features], dtype=torch.long)
     all_end_positions = torch.tensor([0 for f in features], dtype=torch.long)
     all_cls_index = torch.tensor([0 for f in features], dtype=torch.long)
     all_p_mask = torch.tensor([0 for f in features], dtype=torch.float)
