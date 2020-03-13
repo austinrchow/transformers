@@ -1067,7 +1067,6 @@ class AlbertForMultiTask(AlbertPreTrainedModel):
         start_scores, end_scores = model(**input_dict)
 
         """
-        print(dataset_type)
         outputs = self.albert(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -1076,8 +1075,7 @@ class AlbertForMultiTask(AlbertPreTrainedModel):
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
         )
-        task = 'squad'
-        if task == 'glue':
+        if not dataset_type[0].item():
             pooled_output = outputs[1]
             mt_layer =self.shared_output(pooled_output)
             pooled_output = self.dropout(mt_layer)
@@ -1085,18 +1083,18 @@ class AlbertForMultiTask(AlbertPreTrainedModel):
 
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
 
-            if labels is not None:
+            if all_labels is not None:
                 if self.num_labels == 1:
                     #  We are doing regression
                     loss_fct = MSELoss()
-                    loss = loss_fct(logits.view(-1), labels.view(-1))
+                    loss = loss_fct(logits.view(-1), all_labels.view(-1))
                 else:
                     loss_fct = CrossEntropyLoss()
-                    loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                    loss = loss_fct(logits.view(-1, self.num_labels), all_labels.view(-1))
                 outputs = (loss,) + outputs
 
             return outputs  # (loss), logits, (hidden_states), (attentions)
-        if task == 'squad':
+        if dataset_type[0].item():
             sequence_output = outputs[0]
             mt_layer =self.shared_output(sequence_output)
             logits = self.qa_outputs(mt_layer)
